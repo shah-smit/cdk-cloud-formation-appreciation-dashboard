@@ -1,0 +1,12 @@
+{
+    "Records": [{
+		"s3": {
+			"bucket": {
+				"name": "cdk-rekn-imagebucket-smit"
+			},
+			"object": {
+				"key": "image.jpg"
+			}
+		}
+	}]
+}
