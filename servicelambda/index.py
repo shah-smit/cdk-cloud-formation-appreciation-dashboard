@@ -21,8 +21,6 @@ def handler(event, context):
     imageRequest = {
     "key": image
     }
-
-    preeeti 
     
     # GET Request from API
     if action == "getLabels":

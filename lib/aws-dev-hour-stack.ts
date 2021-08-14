@@ -6,7 +6,8 @@ import dynamodb = require('@aws-cdk/aws-dynamodb')
 import {Duration} from '@aws-cdk/core'
 import iam = require('@aws-cdk/aws-iam')
 import event_sources = require('@aws-cdk/aws-lambda-event-sources')
-
+import apigateway  = require('@aws-cdk/aws-apigateway')
+import { PassthroughBehavior } from '@aws-cdk/aws-apigateway';
 const imageBucketName = "cdk-rekn-imagebucket-smit"
 const resizedBucketName = imageBucketName + "-resized"
 
@@ -82,5 +83,90 @@ export class AwsDevHourStack extends cdk.Stack {
     imageBucket.grantWrite(serviceFn)
     resizedBucket.grantWrite(serviceFn)
     table.grantReadWriteData(serviceFn)
+
+
+    const api = new apigateway.LambdaRestApi(this, 'imageAPI', {
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS
+      },
+      handler: serviceFn,
+      proxy: false
+    })
+
+    const lambdaIntegration = new apigateway.LambdaIntegration(serviceFn, {
+      proxy: false,
+      requestParameters: {
+        'integration.request.querystring.action': 'method.request.querystring.action',
+        'integration.request.querystring.key': 'method.request.querystring.key',
+      },
+
+      requestTemplates: {
+        'application/json': JSON.stringify({ action: "$util.escapeJavaScript($input.params('action'))", key: "$util.escapeJavaScript($input.params('key'))" })
+      },
+
+      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
+      integrationResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': "'*'"
+          }
+        },
+        {
+          selectionPattern: "(\n|.)+",
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': "'*'"
+          }
+        }
+      ]
+    })
+
+    const imageAPI = api.root.addResource('images');
+
+    imageAPI.addMethod('GET', lambdaIntegration, {
+      requestParameters: {
+        'method.request.querystring.action': true,
+        'method.request.querystring.key': true
+      },
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true
+          }
+        },
+        {
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true
+          }
+        }
+      ]
+    })
+
+    imageAPI.addMethod('DELETE', lambdaIntegration, {
+      requestParameters: {
+        'method.request.querystring.action': true,
+        'method.request.querystring.key': true
+      },
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true
+          }
+        },
+        {
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true
+          }
+        }
+      ]
+    })
+
+
   }
 }
