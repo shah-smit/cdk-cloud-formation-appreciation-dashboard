@@ -16,12 +16,14 @@ export class AwsDevHourStack extends cdk.Stack {
 
     // The code that defines your stack goes here
     const imageBucket = new s3.Bucket(this, imageBucketName, {
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     })
     new cdk.CfnOutput(this, 'imageBucket', {value: imageBucket.bucketName})
 
     const resizedBucket = new s3.Bucket(this, resizedBucketName, {
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     })
     new cdk.CfnOutput(this, 'resizedBucket', {value: resizedBucket.bucketName})
 
@@ -31,12 +33,23 @@ export class AwsDevHourStack extends cdk.Stack {
     })
     new cdk.CfnOutput(this, "ddbtable", {value: table.tableName})
 
+    // =====================================================================================
+    // Building our AWS Lambda Function; compute for our serverless microservice
+    // =====================================================================================
+    const layer = new lambda.LayerVersion(this, 'pil', {
+      code: lambda.Code.fromAsset('reklayer'),
+      compatibleRuntimes: [lambda.Runtime.PYTHON_3_7],
+      license: 'Apache-2.0',
+      description: 'A layer to enable the PIL library in our Rekognition Lambda',
+    });
+
     const rekFn = new lambda.Function(this, "rekognitionFunction", {
       code: lambda.Code.fromAsset('rekognitionlambda'),
       runtime: lambda.Runtime.PYTHON_3_7,
       handler: 'index.handler',
       timeout: Duration.seconds(30),
       memorySize: 1024,
+      layers: [layer],
       environment: {
         "TABLE": table.tableName,
         "BUCKET": imageBucket.bucketName,
