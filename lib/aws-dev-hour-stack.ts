@@ -3,11 +3,16 @@ import * as cdk from '@aws-cdk/core';
 import s3 = require('@aws-cdk/aws-s3')
 import lambda = require('@aws-cdk/aws-lambda')
 import dynamodb = require('@aws-cdk/aws-dynamodb')
-import {Duration} from '@aws-cdk/core'
+import {Duration, CfnOutput} from '@aws-cdk/core'
 import iam = require('@aws-cdk/aws-iam')
 import event_sources = require('@aws-cdk/aws-lambda-event-sources')
 import apigateway  = require('@aws-cdk/aws-apigateway')
-import { PassthroughBehavior } from '@aws-cdk/aws-apigateway';
+import { AuthorizationType, PassthroughBehavior } from '@aws-cdk/aws-apigateway';
+import cognito = require('@aws-cdk/aws-cognito')
+
+
+
+
 const imageBucketName = "cdk-rekn-imagebucket-smit"
 const resizedBucketName = imageBucketName + "-resized"
 
@@ -21,12 +26,14 @@ export class AwsDevHourStack extends cdk.Stack {
       autoDeleteObjects: true,
     })
     new cdk.CfnOutput(this, 'imageBucket', {value: imageBucket.bucketName})
+    const imageBucketArn = imageBucket.bucketArn;
 
     const resizedBucket = new s3.Bucket(this, resizedBucketName, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     })
     new cdk.CfnOutput(this, 'resizedBucket', {value: resizedBucket.bucketName})
+    const resizedBucketArn = resizedBucket.bucketArn;
 
     const table  = new dynamodb.Table(this, "ImageLabels",  {
       partitionKey: {name: "image", type: dynamodb.AttributeType.STRING},
@@ -84,7 +91,6 @@ export class AwsDevHourStack extends cdk.Stack {
     resizedBucket.grantWrite(serviceFn)
     table.grantReadWriteData(serviceFn)
 
-
     const api = new apigateway.LambdaRestApi(this, 'imageAPI', {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
@@ -93,6 +99,96 @@ export class AwsDevHourStack extends cdk.Stack {
       handler: serviceFn,
       proxy: false
     })
+
+
+    const userpool = new cognito.UserPool(this, 'UserPool', {
+      selfSignUpEnabled: true,
+      autoVerify: { email: true },
+      signInAliases: { username: true, email: true}
+    })
+
+    const userpoolclient = new cognito.UserPoolClient(this, 'UserPoolClient', {
+      userPool: userpool,
+      generateSecret: false
+    })
+
+    const identitypool = new cognito.CfnIdentityPool(this, 'ImageRekognitionIdentityPool', {
+      allowUnauthenticatedIdentities: false,
+      cognitoIdentityProviders: [
+        {
+          clientId: userpoolclient.userPoolClientId,
+          providerName: userpool.userPoolProviderName
+        }
+      ]
+    })
+
+    const auth = new apigateway.CfnAuthorizer(this, 'APIGatewayAuthorizer', {
+      name: 'customer-authorizer',
+      identitySource: 'method.request.header.Authorization',
+      providerArns: [userpool.userPoolArn],
+      restApiId: api.restApiId,
+      type: AuthorizationType.COGNITO
+    })
+
+    const authenticatedRole = new iam.Role(this, 'ImageRekognitionAuthenticatedRole', {
+      assumedBy: new iam.FederatedPrincipal(
+        'cognito-identity.amazonaws.com', 
+        {
+          StringEquals: {
+            "cognito-identity.amazon.com:aud": identitypool.ref
+          },
+          "ForAnyValue:StringLike": {
+            "cognito-identity.amazonaws.com:amr": "authenticated"
+          }
+        },
+        'sts:AssumeRoleWithWebIdentity'
+      )
+    })
+
+    authenticatedRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "s3:GetObject",
+          "s3:PutObject"
+        ],
+        effect: iam.Effect.ALLOW,
+        resources: [
+          imageBucketArn + "/private/${cognito-identity.amazonaws.com:sub}/*",
+          imageBucketArn + "/private/${cognito-identity.amazonaws.com:sub}",
+          resizedBucketArn + "/private/${cognito-identity.amazonaws.com:sub}/*",
+          resizedBucketArn + "/private/${cognito-identity.amazonaws.com:sub}"
+        ],
+      })
+    );
+
+    // IAM policy granting users permission to list their pictures
+    authenticatedRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:ListBucket"],
+        effect: iam.Effect.ALLOW,
+        resources: [
+          imageBucketArn,
+          resizedBucketArn
+        ],
+        conditions: {"StringLike": {"s3:prefix": ["private/${cognito-identity.amazonaws.com:sub}/*"]}}
+      })
+    );
+
+    new cognito.CfnIdentityPoolRoleAttachment(this, "IdentityPoolRoleAttachment", {
+      identityPoolId: identitypool.ref,
+      roles: { authenticated: authenticatedRole.roleArn },
+    });
+
+    new CfnOutput(this, "UserPoolId", {
+      value: userpool.userPoolId,
+    });
+    new CfnOutput(this, "AppClientId", {
+      value: userpoolclient.userPoolClientId,
+    });
+    new CfnOutput(this, "IdentityPoolId", {
+      value: identitypool.ref,
+    });
+    
 
     const lambdaIntegration = new apigateway.LambdaIntegration(serviceFn, {
       proxy: false,
@@ -126,6 +222,8 @@ export class AwsDevHourStack extends cdk.Stack {
     const imageAPI = api.root.addResource('images');
 
     imageAPI.addMethod('GET', lambdaIntegration, {
+      authorizationType: AuthorizationType.COGNITO,
+      authorizer: { authorizerId: auth.ref},
       requestParameters: {
         'method.request.querystring.action': true,
         'method.request.querystring.key': true
@@ -147,6 +245,8 @@ export class AwsDevHourStack extends cdk.Stack {
     })
 
     imageAPI.addMethod('DELETE', lambdaIntegration, {
+      authorizationType: AuthorizationType.COGNITO,
+      authorizer: { authorizerId: auth.ref},
       requestParameters: {
         'method.request.querystring.action': true,
         'method.request.querystring.key': true
