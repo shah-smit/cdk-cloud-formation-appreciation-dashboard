@@ -2,7 +2,7 @@
     "Records": [{
 		"s3": {
 			"bucket": {
-				"name": "cdk-rekn-imagebucket-smit"
+				"name": "your-bucket-name"
 			},
 			"object": {
 				"key": "image.jpg"

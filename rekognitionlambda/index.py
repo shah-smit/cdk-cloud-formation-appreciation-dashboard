@@ -10,8 +10,9 @@ from urllib.parse import unquote_plus
 from boto3.dynamodb.conditions import Key, Attr
 import uuid
 from PIL import Image
+import json
 
-thumbBucket = os.environ['THUMBBUCKET']
+thumbBucket = os.environ['RESIZEDBUCKET']
 
 # Set the minimum confidence for Amazon Rekognition
 
@@ -36,9 +37,11 @@ def handler(event, context):
     print("Lambda processing event: ", event)
 
     # For each message (photo) get the bucket name and key
-    for record in event['Records']:
-        ourBucket = record['s3']['bucket']['name']
-        ourKey = record['s3']['object']['key']
+    for response in event['Records']:
+        formatted = json.loads(response['body'])
+        for record in formatted['Records']:
+            ourBucket = record['s3']['bucket']['name']
+            ourKey = record['s3']['object']['key']
 
         # For each bucket/key, retrieve labels
         generateThumb(ourBucket, ourKey)
@@ -89,6 +92,8 @@ def rekFunction(ourBucket, ourKey):
     
     print('Currently processing the following image')
     print('Bucket: ' + ourBucket + ' key name: ' + safeKey)
+
+    detectLabelsResults = {}
 
     # Try and retrieve labels from Amazon Rekognition, using the confidence level we set in minConfidence var
     try:

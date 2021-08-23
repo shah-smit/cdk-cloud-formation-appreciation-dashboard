@@ -73,7 +73,7 @@ def deleteImage(image):
         logging.error(e)
 
     bucketName = os.environ["BUCKET"]
-    resizedBucketName = os.environ["THUMBBUCKET"]
+    resizedBucketName = os.environ["RESIZEDBUCKET"]
 
     # Delete Photo and Thumbnail from Amazon S3
 
