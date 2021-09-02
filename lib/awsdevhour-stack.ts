@@ -26,8 +26,7 @@ export class AwsdevhourStack extends cdk.Stack {
     // Image Bucket
     // =====================================================================================
     const imageBucket = new s3.Bucket(this, imageBucketName, {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
     new cdk.CfnOutput(this, 'imageBucket', { value: imageBucket.bucketName });
     const imageBucketArn = imageBucket.bucketArn;
@@ -42,8 +41,7 @@ export class AwsdevhourStack extends cdk.Stack {
     // Thumbnail Bucket
     // =====================================================================================
     const resizedBucket = new s3.Bucket(this, resizedBucketName, {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
     new cdk.CfnOutput(this, 'resizedBucket', {value: resizedBucket.bucketName});
     const resizedBucketArn = resizedBucket.bucketArn;
@@ -60,16 +58,21 @@ export class AwsdevhourStack extends cdk.Stack {
     const webBucket = new s3.Bucket(this, websiteBucketName, {
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html',
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-      publicReadAccess: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+      // publicReadAccess: true,
     });
     
     webBucket.addToResourcePolicy(new iam.PolicyStatement({
       actions: ['s3:GetObject'],
       resources: [webBucket.arnForObjects('*')],
-      principals: [new iam.AnyPrincipal()]
-  
+      principals: [new iam.AnyPrincipal()],
+      conditions: {
+        'IpAddress': {
+          'aws:SourceIp': [
+            '*.*.*.*/*' // Please change it to your IP address or from your allowed list
+            ]
+        }
+      }
       
     }))
     new cdk.CfnOutput(this, 'bucketURL', { value: webBucket.bucketWebsiteDomainName });
