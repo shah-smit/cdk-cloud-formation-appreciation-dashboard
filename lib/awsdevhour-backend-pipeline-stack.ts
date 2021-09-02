@@ -48,6 +48,7 @@ export class AwsdevhourBackendPipelineStack extends Stack {
         branch: githubBranch
       }),
       // Define build and synth commands
+      //
       synthAction: SimpleSynthAction.standardNpmSynth({
         sourceArtifact,
         cloudAssemblyArtifact,
