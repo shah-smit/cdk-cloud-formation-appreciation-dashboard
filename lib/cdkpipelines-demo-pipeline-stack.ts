@@ -4,6 +4,7 @@ import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
 import { CdkPipeline, SimpleSynthAction } from "@aws-cdk/pipelines";
 import { CdkpipelinesDemoStage} from './cdkpipelines-demo-stage';
 import { ShellScriptAction } from '@aws-cdk/pipelines';
+import { StringParameter } from '@aws-cdk/aws-ssm';
 
 /**
  * The stack that defines the application pipeline
@@ -15,6 +16,18 @@ import { ShellScriptAction } from '@aws-cdk/pipelines';
       const sourceArtifact = new codepipeline.Artifact();
       const cloudAssemblyArtifact = new codepipeline.Artifact();
 
+      const githubOwner = StringParameter.fromStringParameterAttributes(this, 'gitOwner',{
+        parameterName: 'devhour-backend-git-owner'
+      }).stringValue;
+    
+      const githubRepo = StringParameter.fromStringParameterAttributes(this, 'gitRepo',{
+        parameterName: 'devhour-backend-git-repo'
+      }).stringValue;
+    
+      const githubBranch = StringParameter.fromStringParameterAttributes(this, 'gitBranch',{
+        parameterName: 'devhour-backend-git-branch'
+      }).stringValue;
+
       const pipeline = new CdkPipeline(this, 'Pipeline', {
         // The pipeline name
         pipelineName: 'MyServicePipeline',
@@ -24,10 +37,10 @@ import { ShellScriptAction } from '@aws-cdk/pipelines';
         sourceAction: new codepipeline_actions.GitHubSourceAction({
         actionName: 'GitHub',
         output: sourceArtifact,
-        oauthToken: SecretValue.secretsManager('github-token'),
-        owner: 'GITHUB-USER',
-        repo: 'REPO',
-        branch: 'main'
+        oauthToken: SecretValue.secretsManager('devhour-backend-git-access-token', {jsonField: 'devhour-backend-git-access-token'}), // this token is stored in Secret Manager
+        owner: githubOwner,
+        repo: githubRepo,
+        branch: githubBranch
       }),
 
       // How it will be built and synthesized
@@ -41,7 +54,7 @@ import { ShellScriptAction } from '@aws-cdk/pipelines';
    });
    // This is where we add the application stages
    const preprod = new CdkpipelinesDemoStage(this, 'PreProd', {
-    env: { account: 'ACCOUNT-NUMBER', region: 'REGION' }
+    env: { account: '174428063264', region: 'ap-southeast-1' },
   });
 
   // put validations for the stages 
@@ -61,7 +74,7 @@ import { ShellScriptAction } from '@aws-cdk/pipelines';
   }));
 
   pipeline.addApplicationStage(new CdkpipelinesDemoStage(this, 'Prod', {
-    env: { account: 'ACCOUNT-NUMBER', region: 'REGION' }
+    env: { account: '174428063264', region: 'ap-southeast-1' },
   }));
   }
 }
