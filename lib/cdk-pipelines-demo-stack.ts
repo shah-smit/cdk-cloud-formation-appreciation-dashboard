@@ -26,10 +26,12 @@ export class CdkpipelinesDemoStack extends Stack {
 
     // The Lambda function that contains the functionality
     const handler = new lambda.Function(this, 'Lambda', {
-      runtime: lambda.Runtime.NODEJS_12_X,
-      handler: 'handler.handler',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      handler: 'index.lambda_handler',
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
     });
+
+    table.grantReadWriteData(handler);
 
     // An API Gateway to make the Lambda web-accessible
     const gw = new apigw.LambdaRestApi(this, 'Gateway', {
