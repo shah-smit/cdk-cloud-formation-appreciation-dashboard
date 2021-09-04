@@ -31,7 +31,7 @@ export class CdkpipelinesDemoStack extends Stack {
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
     });
 
-    table.grantReadWriteData(handler);
+    table.grantFullAccess(handler);
 
     // An API Gateway to make the Lambda web-accessible
     const gw = new apigw.LambdaRestApi(this, 'Gateway', {
