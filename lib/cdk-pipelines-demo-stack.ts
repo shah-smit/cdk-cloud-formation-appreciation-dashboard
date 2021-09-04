@@ -1,7 +1,9 @@
 import * as apigw from '@aws-cdk/aws-apigateway';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { CfnOutput, Construct, Stack, StackProps } from '@aws-cdk/core';
+import dynamodb = require('@aws-cdk/aws-dynamodb');
 import * as path from 'path';
+import * as cdk from '@aws-cdk/core';
 
 /**
  * A stack for our simple Lambda-powered web service
@@ -14,6 +16,13 @@ export class CdkpipelinesDemoStack extends Stack {
  
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    const table = new dynamodb.Table(this, 'Messages', {
+      partitionKey: { name: 'messsage', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+
+    new cdk.CfnOutput(this, 'ddbTable', { value: table.tableName });
 
     // The Lambda function that contains the functionality
     const handler = new lambda.Function(this, 'Lambda', {
