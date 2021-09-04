@@ -58,21 +58,21 @@ export class AwsdevhourStack extends cdk.Stack {
     const webBucket = new s3.Bucket(this, websiteBucketName, {
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html',
-      removalPolicy: cdk.RemovalPolicy.DESTROY
-      // publicReadAccess: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      publicReadAccess: true,
     });
     
     webBucket.addToResourcePolicy(new iam.PolicyStatement({
       actions: ['s3:GetObject'],
       resources: [webBucket.arnForObjects('*')],
       principals: [new iam.AnyPrincipal()],
-      conditions: {
-        'IpAddress': {
-          'aws:SourceIp': [
-            '*.*.*.*/*' // Please change it to your IP address or from your allowed list
-            ]
-        }
-      }
+      // conditions: {
+      //   'IpAddress': {
+      //     'aws:SourceIp': [
+      //       '*.*.*.*/*' // Please change it to your IP address or from your allowed list
+      //       ]
+      //   }
+      // }
       
     }))
     new cdk.CfnOutput(this, 'bucketURL', { value: webBucket.bucketWebsiteDomainName });
