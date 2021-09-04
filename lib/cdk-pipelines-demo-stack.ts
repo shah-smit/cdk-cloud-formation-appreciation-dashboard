@@ -29,6 +29,9 @@ export class CdkpipelinesDemoStack extends Stack {
       runtime: lambda.Runtime.PYTHON_3_8,
       handler: 'index.lambda_handler',
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
+      environment: {
+        "TABLE": table.tableName
+      }
     });
 
     table.grantFullAccess(handler);
