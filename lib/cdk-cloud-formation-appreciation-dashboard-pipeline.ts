@@ -2,14 +2,14 @@ import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
 import { CdkPipeline, SimpleSynthAction } from "@aws-cdk/pipelines";
-import { CdkpipelinesDemoStage} from './cdkpipelines-demo-stage';
+import { CdkCloudFormationAppreciationDashboardStage} from './cdk-cloud-formation-appreciation-dashboard-stage';
 import { ShellScriptAction } from '@aws-cdk/pipelines';
 import { StringParameter } from '@aws-cdk/aws-ssm';
 
 /**
  * The stack that defines the application pipeline
  */
- export class CdkpipelinesDemoPipelineStack extends Stack {
+ export class CdkCloudFormationAppreciationDashboardPipelineStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
       super(scope, id, props);
 
@@ -53,8 +53,8 @@ import { StringParameter } from '@aws-cdk/aws-ssm';
       }),
    });
    // This is where we add the application stages
-   const preprod = new CdkpipelinesDemoStage(this, 'PreProd', {
-    env: { account: '174428063264', region: 'ap-southeast-1' },
+   const preprod = new CdkCloudFormationAppreciationDashboardStage(this, 'PreProd', {
+    env: { account: 'accountnumber', region: 'ap-southeast-1' },
   });
 
   // put validations for the stages 
@@ -73,7 +73,7 @@ import { StringParameter } from '@aws-cdk/aws-ssm';
     ],
   }));
 
-  pipeline.addApplicationStage(new CdkpipelinesDemoStage(this, 'Prod', {
+  pipeline.addApplicationStage(new CdkCloudFormationAppreciationDashboardStage(this, 'Prod', {
     env: { account: '174428063264', region: 'ap-southeast-1' },
   }));
   }

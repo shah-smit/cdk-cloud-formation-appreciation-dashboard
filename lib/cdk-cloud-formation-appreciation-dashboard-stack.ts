@@ -5,16 +5,11 @@ import dynamodb = require('@aws-cdk/aws-dynamodb');
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 
-/**
- * A stack for our simple Lambda-powered web service
- */
-export class CdkpipelinesDemoStack extends Stack {
-  /**
-   * The URL of the API Gateway endpoint, for use in the integ tests
-   */
+export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
+
   public readonly urlOutput: CfnOutput;
- 
-  constructor(scope: Construct, id: string, props?: StackProps) {
+
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const table = new dynamodb.Table(this, 'Messages', {
@@ -25,21 +20,21 @@ export class CdkpipelinesDemoStack extends Stack {
     new cdk.CfnOutput(this, 'ddbTable', { value: table.tableName });
 
     // The Lambda function that contains the functionality
-    const handler = new lambda.Function(this, 'Lambda', {
+    const readHandler = new lambda.Function(this, 'ReadLambda', {
       runtime: lambda.Runtime.PYTHON_3_8,
       handler: 'index.lambda_handler',
-      code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
+      code: lambda.Code.fromAsset(path.resolve(__dirname, 'read-lambda')),
       environment: {
         "TABLE": table.tableName
       }
     });
 
-    table.grantFullAccess(handler);
+    table.grantFullAccess(readHandler);
 
     // An API Gateway to make the Lambda web-accessible
     const gw = new apigw.LambdaRestApi(this, 'Gateway', {
       description: 'Endpoint for a simple Lambda-powered web service',
-      handler,
+      handler: readHandler,
     });
 
     this.urlOutput = new CfnOutput(this, 'Url', {
