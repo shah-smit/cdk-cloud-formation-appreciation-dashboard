@@ -54,7 +54,7 @@ import { StringParameter } from '@aws-cdk/aws-ssm';
    });
    // This is where we add the application stages
    const preprod = new CdkCloudFormationAppreciationDashboardStage(this, 'PreProd', {
-    env: { account: 'accountnumber', region: 'ap-southeast-1' },
+    env: { account: '174428063264', region: 'ap-southeast-1' },
   });
 
   // put validations for the stages 
