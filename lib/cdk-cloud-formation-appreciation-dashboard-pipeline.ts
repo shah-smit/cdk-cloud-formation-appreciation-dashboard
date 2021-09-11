@@ -3,6 +3,7 @@ import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import { Construct, SecretValue, Stack, StackProps } from '@aws-cdk/core';
 import { CdkPipeline, SimpleSynthAction } from "@aws-cdk/pipelines";
 import { CdkCloudFormationAppreciationDashboardStage} from './cdk-cloud-formation-appreciation-dashboard-stage';
+import { CdkCloudFormationAppreciationDashboardDefaultStage } from './cdk-cloud-formation-appreciation-dashboard-default-stage';
 import { ShellScriptAction } from '@aws-cdk/pipelines';
 import { StringParameter } from '@aws-cdk/aws-ssm';
 import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
@@ -74,10 +75,14 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
     ],
   }));
 
-  preprodStage.addActions(new ManualApprovalAction({
-      actionName: 'ManualApproval',
-      runOrder: preprodStage.nextSequentialRunOrder(),
-    }));
+
+  const manualapprovalStage = pipeline.addApplicationStage(new CdkCloudFormationAppreciationDashboardDefaultStage(this, 'Manual'));
+
+  manualapprovalStage.addActions(new ManualApprovalAction({
+    actionName: 'ManualApproval',
+    runOrder: preprodStage.nextSequentialRunOrder(),
+  }));
+
 
   pipeline.addApplicationStage(new CdkCloudFormationAppreciationDashboardStage(this, 'Prod', {
     env: { account: '174428063264', region: 'ap-southeast-1' },
