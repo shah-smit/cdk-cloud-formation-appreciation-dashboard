@@ -21,7 +21,7 @@ import { StringParameter } from '@aws-cdk/aws-ssm';
       }).stringValue;
     
       const githubRepo = StringParameter.fromStringParameterAttributes(this, 'gitRepo',{
-        parameterName: 'devhour-backend-git-repo'
+        parameterName: 'cdk-cloud-formation-appreciation-dashboard-github-repo'
       }).stringValue;
     
       const githubBranch = StringParameter.fromStringParameterAttributes(this, 'gitBranch',{
