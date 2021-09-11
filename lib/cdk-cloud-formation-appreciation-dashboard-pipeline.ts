@@ -5,6 +5,7 @@ import { CdkPipeline, SimpleSynthAction } from "@aws-cdk/pipelines";
 import { CdkCloudFormationAppreciationDashboardStage} from './cdk-cloud-formation-appreciation-dashboard-stage';
 import { ShellScriptAction } from '@aws-cdk/pipelines';
 import { StringParameter } from '@aws-cdk/aws-ssm';
+import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
 
 /**
  * The stack that defines the application pipeline
@@ -72,6 +73,11 @@ import { StringParameter } from '@aws-cdk/aws-ssm';
       'curl -Ssf $ENDPOINT_URL',
     ],
   }));
+
+  preprodStage.addActions(new ManualApprovalAction({
+      actionName: 'ManualApproval',
+      runOrder: preprodStage.nextSequentialRunOrder(),
+    }));
 
   pipeline.addApplicationStage(new CdkCloudFormationAppreciationDashboardStage(this, 'Prod', {
     env: { account: '174428063264', region: 'ap-southeast-1' },
