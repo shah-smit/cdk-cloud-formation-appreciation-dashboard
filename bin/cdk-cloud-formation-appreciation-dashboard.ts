@@ -6,8 +6,6 @@ import { CdkCloudFormationAppreciationDashboardStack } from '../lib/cdk-cloud-fo
 
 const app = new cdk.App();
 new CdkCloudFormationAppreciationDashboardStack(app, 'DashboardStack');
-new CdkCloudFormationAppreciationDashboardPipelineStack(app, 'CdkCloudFormationAppreciationDashboardPipelineStack', {
-  env: { account: '174428063264', region: 'ap-southeast-1' },
-});
+new CdkCloudFormationAppreciationDashboardPipelineStack(app, 'CdkCloudFormationAppreciationDashboardPipelineStack');
 
 app.synth();

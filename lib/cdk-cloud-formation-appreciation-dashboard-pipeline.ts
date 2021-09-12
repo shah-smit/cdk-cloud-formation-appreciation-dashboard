@@ -55,9 +55,7 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
       }),
    });
    // This is where we add the application stages
-   const preprod = new CdkCloudFormationAppreciationDashboardStage(this, 'PreProd', {
-    env: { account: '174428063264', region: 'ap-southeast-1' },
-  });
+   const preprod = new CdkCloudFormationAppreciationDashboardStage(this, 'PreProd');
 
   // put validations for the stages 
   const preprodStage = pipeline.addApplicationStage(preprod);
@@ -84,8 +82,6 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
   }));
 
 
-  pipeline.addApplicationStage(new CdkCloudFormationAppreciationDashboardStage(this, 'Prod', {
-    env: { account: '174428063264', region: 'ap-southeast-1' },
-  }));
+  pipeline.addApplicationStage(new CdkCloudFormationAppreciationDashboardStage(this, 'Prod'));
   }
 }
