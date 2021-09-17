@@ -56,3 +56,8 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
   --cloudformation-execution-policies arn:aws:iam::aws:policy/AdministratorAccess \
   aws://174428063264/ap-southeast-1
 ```
+
+
+##### References & Useful URLs
+
+- [API Gateway](https://bobbyhadz.com/blog/aws-cdk-api-gateway-example)

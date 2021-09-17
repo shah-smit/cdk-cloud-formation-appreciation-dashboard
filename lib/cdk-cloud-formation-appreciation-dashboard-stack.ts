@@ -44,13 +44,64 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
     table.grantFullAccess(createHandler);
 
     // An API Gateway to make the Lambda web-accessible
-    const gw = new apigw.LambdaRestApi(this, 'Gateway', {
-      description: 'Endpoint for a simple Lambda-powered web service',
-      handler: readHandler,
+    const api = new apigw.RestApi(this, 'Gateway', {
+      description: 'example api gateway',
+      // 👇 enable CORS
+      defaultCorsPreflightOptions: {
+        allowHeaders: [
+          'Content-Type',
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+        ],
+        allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        allowCredentials: true,
+        allowOrigins: ['http://localhost:3000'],
+      },
     });
 
+    const messages = api.root;
+    messages.addMethod('GET', new apigw.LambdaIntegration(readHandler));
+
+
+    messages.addMethod('POST', new apigw.LambdaIntegration(createHandler, { proxy: false,  integrationResponses: [
+      {
+        statusCode: "200",
+        responseParameters: {
+          // We can map response parameters
+          // - Destination parameters (the key) are the response parameters (used in mappings)
+          // - Source parameters (the value) are the integration response parameters or expressions
+          'method.response.header.Access-Control-Allow-Origin': "'*'"
+        }
+      },
+      {
+        // For errors, we check if the error message is not empty, get the error data
+        selectionPattern: "(\n|.)+",
+        statusCode: "500",
+        responseParameters: {
+          'method.response.header.Access-Control-Allow-Origin': "'*'"
+        }
+      }
+    ], }), {
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        },
+        {
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        }
+      ]
+    });
+
+
     this.urlOutput = new CfnOutput(this, 'Url', {
-      value: gw.url,
+      value: api.url,
     });
   }
 }
