@@ -31,6 +31,18 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
 
     table.grantFullAccess(readHandler);
 
+    // The Lambda function that contains the functionality
+    const createHandler = new lambda.Function(this, 'CreateLambda', {
+      runtime: lambda.Runtime.PYTHON_3_8,
+      handler: 'index.lambda_handler',
+      code: lambda.Code.fromAsset(path.resolve(__dirname, 'create-lambda')),
+      environment: {
+        "TABLE": table.tableName
+      }
+    });
+
+    table.grantFullAccess(createHandler);
+
     // An API Gateway to make the Lambda web-accessible
     const gw = new apigw.LambdaRestApi(this, 'Gateway', {
       description: 'Endpoint for a simple Lambda-powered web service',
