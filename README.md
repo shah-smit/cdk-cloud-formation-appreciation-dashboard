@@ -48,7 +48,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
  * `cdk deploy`      deploy this stack to your default AWS account/region
  * `cdk diff`        compare deployed stack with current state
  * `cdk synth`       emits the synthesized CloudFormation template
- * `for bucket in $(aws s3 ls | awk '{print $3}' | grep todelete); do  aws s3 rb "s3://${bucket}" --force ; done` to delete buckets that matches `todelete`
+ * `for bucket in $(aws s3 ls | awk '{print $3}' | grep cdk); do  aws s3 rb "s3://${bucket}" --force ; done` to delete buckets that matches `todelete`
 
 ```
  cdk bootstrap \

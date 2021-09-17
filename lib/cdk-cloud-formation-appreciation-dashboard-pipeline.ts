@@ -60,6 +60,8 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
   // put validations for the stages 
   const preprodStage = pipeline.addApplicationStage(preprod);
   
+  const millis = Date.now();
+
   preprodStage.addActions(new ShellScriptAction({
     actionName: 'TestService',
     useOutputs: {
@@ -70,6 +72,13 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
     commands: [
       // Use 'curl' to GET the given URL and fail if it returns an error
       'curl -Ssf $ENDPOINT_URL',
+      `
+      curl --location --request POST '${pipeline.stackOutput(preprod.urlOutput)}' \
+      --header 'Content-Type: application/json' \
+      --data-raw '{
+          "message":"test script ${millis}"
+      }'
+      `
     ],
   }));
 
