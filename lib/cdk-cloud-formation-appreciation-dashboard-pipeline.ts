@@ -67,18 +67,12 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
     useOutputs: {
       // Get the stack Output from the Stage and make it available in
       // the shell script as $ENDPOINT_URL.
-      ENDPOINT_URL: pipeline.stackOutput(preprod.urlOutput),
+      ENDPOINT_URL: pipeline.stackOutput(preprod.urlOutput)
     },
     commands: [
       // Use 'curl' to GET the given URL and fail if it returns an error
       'curl -Ssf $ENDPOINT_URL',
-      `
-      curl --location --request POST '${pipeline.stackOutput(preprod.urlOutput)}' \
-      --header 'Content-Type: application/json' \
-      --data-raw '{
-          "message":"test script ${millis}"
-      }'
-      `
+      `curl --location --request POST $ENDPOINT_URL --header 'Content-Type: application/json' --data-raw '{ "message":"auto script" }'`
     ],
   }));
 
