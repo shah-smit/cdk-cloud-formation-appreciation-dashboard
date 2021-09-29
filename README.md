@@ -36,6 +36,17 @@ cdk destroy CdkCloudFormationAppreciationDashboardPipelineStack/Manual/DefaultSt
 cdk destroy CdkCloudFormationAppreciationDashboardPipelineStack/Prod/WebService
 ```
 
+Secrets and Parameters definition:
+
+Creating a secret:
+```
+aws secretsmanager create-secret --name devhour-backend-git-access-token --secret-value test
+```
+
+To See if went correct:
+```
+aws secretsmanager describe-secret --secret-id devhour-backend-git-access-token
+```
 
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
