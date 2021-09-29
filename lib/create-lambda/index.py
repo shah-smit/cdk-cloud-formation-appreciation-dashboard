@@ -7,14 +7,12 @@ def lambda_handler(event, context):
     messages_table = os.environ['TABLE']
     table = dynamodb.Table(messages_table)
     print(event)
-    response = table.put_item(
+    table.put_item(
        Item={
             'messsage':event['message']
         }
     )
-    return response
     
-    return {
-        'statusCode': 200,
-        'body': json.dumps(data)
+    return { 
+        'message': 'successfully inserted' 
     }
