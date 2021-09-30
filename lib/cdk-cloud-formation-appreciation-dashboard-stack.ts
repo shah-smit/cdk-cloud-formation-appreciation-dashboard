@@ -4,6 +4,11 @@ import { CfnOutput, Construct, Stack, StackProps } from '@aws-cdk/core';
 import dynamodb = require('@aws-cdk/aws-dynamodb');
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
+import s3 = require('@aws-cdk/aws-s3');
+import iam = require('@aws-cdk/aws-iam');
+import s3deploy = require('@aws-cdk/aws-s3-deployment');
+
+const websiteBucketName = "cdk-dashboard-publicbucket"
 
 export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
 
@@ -11,6 +16,31 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
 
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // =====================================================================================
+    // Construct to create our Amazon S3 Bucket to host our website
+    // =====================================================================================
+    const webBucket = new s3.Bucket(this, websiteBucketName, {
+      websiteIndexDocument: 'index.html',
+      websiteErrorDocument: 'index.html',
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      publicReadAccess: true,
+    });
+    
+    webBucket.addToResourcePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [webBucket.arnForObjects('*')],
+      principals: [new iam.AnyPrincipal()]    
+    }))
+    new cdk.CfnOutput(this, 'bucketURL', { value: webBucket.bucketWebsiteDomainName });
+    
+    // =====================================================================================
+    // Deploy site contents to S3 Bucket
+    // =====================================================================================
+    new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+        sources: [ s3deploy.Source.asset('./static-website') ],
+        destinationBucket: webBucket
+    });
 
     const table = new dynamodb.Table(this, 'Messages', {
       partitionKey: { name: 'messsage', type: dynamodb.AttributeType.STRING },
