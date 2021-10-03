@@ -25,6 +25,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       websiteErrorDocument: 'index.html',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       publicReadAccess: true,
+      autoDeleteObjects: true
     });
     
     webBucket.addToResourcePolicy(new iam.PolicyStatement({

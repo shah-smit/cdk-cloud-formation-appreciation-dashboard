@@ -3,22 +3,22 @@ import * as cdk from '@aws-cdk/core';
 import * as CdkCloudFormationAppreciationDashboard from '../lib/cdk-cloud-formation-appreciation-dashboard-stack';
 
 test('Read-Lambda Created', () => {
-    const app = new cdk.App();
-    // WHEN
-    const stack = new CdkCloudFormationAppreciationDashboard.CdkCloudFormationAppreciationDashboardStack(app, 'MyTestStack');
-    // THEN
-    //Get Table Name
-    
-    expectCDK(stack).to(haveResource("AWS::Lambda::Function", {
-      "Handler": "index.lambda_handler",
-      Environment: {
-        Variables: {
-          TABLE: {
-            Ref: stringLike("Messages*"),
-          }
+  const app = new cdk.App();
+  // WHEN
+  const stack = new CdkCloudFormationAppreciationDashboard.CdkCloudFormationAppreciationDashboardStack(app, 'MyTestStack');
+  // THEN
+  //Get Table Name
+
+  expectCDK(stack).to(haveResource("AWS::Lambda::Function", {
+    "Handler": "index.lambda_handler",
+    Environment: {
+      Variables: {
+        TABLE: {
+          Ref: stringLike("Messages*"),
         }
       }
-      }));
+    }
+  }));
 });
 
 test('DynamoDB Table Created', () => {
@@ -26,7 +26,7 @@ test('DynamoDB Table Created', () => {
   // WHEN
   const stack = new CdkCloudFormationAppreciationDashboard.CdkCloudFormationAppreciationDashboardStack(app, 'MyTestStack');
   // THEN
-  expectCDK(stack).to(haveResource("AWS::DynamoDB::Table",{
+  expectCDK(stack).to(haveResource("AWS::DynamoDB::Table", {
     "AttributeDefinitions": [
       {
         "AttributeName": "messsage",
@@ -46,5 +46,21 @@ test('API Gateway Created', () => {
   const stack = new CdkCloudFormationAppreciationDashboard.CdkCloudFormationAppreciationDashboardStack(app, 'MyTestStack');
   // THEN
   expectCDK(stack).to(haveResource("AWS::ApiGateway::RestApi"));
+});
+
+
+test('S3 Created', () => {
+  const app = new cdk.App();
+  // WHEN
+  const stack = new CdkCloudFormationAppreciationDashboard.CdkCloudFormationAppreciationDashboardStack(app, 'MyTestStack');
+  // THEN
+  //Get Table Name
+  
+  expectCDK(stack).to(haveResource("AWS::S3::Bucket", {
+      "WebsiteConfiguration": {
+        "ErrorDocument": "index.html",
+        "IndexDocument": "index.html"
+      }
+  }));
 });
 
