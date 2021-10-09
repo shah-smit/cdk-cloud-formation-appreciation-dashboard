@@ -68,6 +68,30 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
   aws://174428063264/ap-southeast-1
 ```
 
+##### API Definitation
+
+POST:
+
+```
+{
+    "to":"xxxx@gmail.com",
+    "message":"{{$randomCatchPhrase}}",
+    "from": "smxxxh95@gmail.com",
+    "nickName":"Raja",
+    "senderName": "Smit"
+}
+```
+
+
+GET:
+
+```
+[
+    {
+        "messsage": "amazing1633784967"
+    }
+]
+```
 
 ##### References & Useful URLs
 

@@ -72,6 +72,12 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       }
     });
 
+    createHandler.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ses:SendEmail', 'SES:SendRawEmail'],
+      resources: ['*'],
+      effect: iam.Effect.ALLOW,
+    }));
+
     table.grantFullAccess(createHandler);
 
     // An API Gateway to make the Lambda web-accessible
