@@ -72,6 +72,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 POST:
 
+Adding a single message to DynamoDB
 ```
 {
     "to":"xxxx@gmail.com",
@@ -85,6 +86,7 @@ POST:
 
 GET:
 
+Getting all the messages from DynamoDB
 ```
 [
     {
