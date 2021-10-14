@@ -43,7 +43,11 @@ def lambda_handler(event, context):
     table.put_item(
        Item={
             'messsage': message,
-            'message': message
+            'message': message,
+            'to': toEmailAddresses,
+            'from': fromEmailAddresses,
+            'nickname': nickname,
+            'senderName': senderName
         }
     )
 

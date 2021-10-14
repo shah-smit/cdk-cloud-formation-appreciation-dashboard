@@ -7,6 +7,7 @@ import * as cdk from '@aws-cdk/core';
 import s3 = require('@aws-cdk/aws-s3');
 import iam = require('@aws-cdk/aws-iam');
 import s3deploy = require('@aws-cdk/aws-s3-deployment');
+import { Tracing } from '@aws-cdk/aws-lambda';
 
 const websiteBucketName = "cdk-dashboard-publicbucket"
 
@@ -57,7 +58,8 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'read-lambda')),
       environment: {
         "TABLE": table.tableName
-      }
+      },
+      tracing: Tracing.ACTIVE
     });
 
     table.grantFullAccess(readHandler);
@@ -69,7 +71,8 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'create-lambda')),
       environment: {
         "TABLE": table.tableName
-      }
+      },
+      tracing: Tracing.ACTIVE
     });
 
     createHandler.addToRolePolicy(new iam.PolicyStatement({
