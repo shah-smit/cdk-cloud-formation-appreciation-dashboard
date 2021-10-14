@@ -59,8 +59,6 @@ import { ManualApprovalAction } from '@aws-cdk/aws-codepipeline-actions';
 
   // put validations for the stages 
   const preprodStage = pipeline.addApplicationStage(preprod);
-  
-  const millis = Date.now();
 
   preprodStage.addActions(new ShellScriptAction({
     actionName: 'TestService',
