@@ -75,7 +75,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
     createHandler.addToRolePolicy(new iam.PolicyStatement({
       actions: ['ses:SendEmail', 'SES:SendRawEmail'],
       resources: ['*'],
-      effect: iam.Effect.ALLOW,
+      effect: iam.Effect.ALLOW
     }));
 
     table.grantFullAccess(createHandler);
@@ -93,12 +93,45 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
         ],
         allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         allowCredentials: true,
-        allowOrigins: ['http://localhost:3000'],
+        allowOrigins: apigw.Cors.ALL_ORIGINS,
       },
     });
 
     const messages = api.root;
-    messages.addMethod('GET', new apigw.LambdaIntegration(readHandler));
+    messages.addMethod('GET', new apigw.LambdaIntegration(readHandler, { proxy: false,  integrationResponses: [
+      {
+        statusCode: "200",
+        responseParameters: {
+          // We can map response parameters
+          // - Destination parameters (the key) are the response parameters (used in mappings)
+          // - Source parameters (the value) are the integration response parameters or expressions
+          'method.response.header.Access-Control-Allow-Origin': "'*'"
+        }
+      },
+      {
+        // For errors, we check if the error message is not empty, get the error data
+        selectionPattern: "(\n|.)+",
+        statusCode: "500",
+        responseParameters: {
+          'method.response.header.Access-Control-Allow-Origin': "'*'"
+        }
+      }
+    ], }), {
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        },
+        {
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        }
+      ]
+    });
 
 
     messages.addMethod('POST', new apigw.LambdaIntegration(createHandler, { proxy: false,  integrationResponses: [
