@@ -8,7 +8,4 @@ def lambda_handler(event, context):
     table = dynamodb.Table(messages_table)
     data = table.scan()
     
-    return {
-        'statusCode': 200,
-        'body': json.dumps(data['Items'])
-    }
+    return data['Items']

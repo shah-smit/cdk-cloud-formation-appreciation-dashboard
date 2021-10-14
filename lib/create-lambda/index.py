@@ -42,7 +42,8 @@ def lambda_handler(event, context):
     print(event)
     table.put_item(
        Item={
-            'messsage': message
+            'messsage': message,
+            'message': message
         }
     )
 
