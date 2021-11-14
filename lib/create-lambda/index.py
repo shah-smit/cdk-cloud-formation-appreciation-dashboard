@@ -35,6 +35,7 @@ def lambda_handler(event, context):
     fromEmailAddresses = event['from']
     nickname = event['nickName']
     senderName = event['senderName']
+    imageUrl = event['imageUrl']
 
     dynamodb = boto3.resource('dynamodb')
     messages_table = os.environ['TABLE']
@@ -47,7 +48,8 @@ def lambda_handler(event, context):
             'to': toEmailAddresses,
             'from': fromEmailAddresses,
             'nickname': nickname,
-            'senderName': senderName
+            'senderName': senderName,
+            'imageUrl': imageUrl
         }
     )
 

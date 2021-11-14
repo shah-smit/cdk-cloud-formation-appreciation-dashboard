@@ -8,8 +8,12 @@ import s3 = require('@aws-cdk/aws-s3');
 import iam = require('@aws-cdk/aws-iam');
 import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import { Tracing } from '@aws-cdk/aws-lambda';
+import cognito = require('@aws-cdk/aws-cognito');
+import { HttpMethods } from '@aws-cdk/aws-s3';
+import { AuthorizationType, PassthroughBehavior } from '@aws-cdk/aws-apigateway';
 
 const websiteBucketName = "cdk-dashboard-publicbucket"
+const imageBucketName = "cdk-rekn-imgagebucket"
 
 export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
 
@@ -17,6 +21,23 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
 
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // =====================================================================================
+    // Image Bucket
+    // =====================================================================================
+    const imageBucket = new s3.Bucket(this, imageBucketName, {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      publicReadAccess: true,
+      autoDeleteObjects: true
+    });
+    new cdk.CfnOutput(this, 'imageBucket', { value: imageBucket.bucketName });
+    const imageBucketArn = imageBucket.bucketArn;
+    imageBucket.addCorsRule({
+      allowedMethods: [HttpMethods.GET, HttpMethods.PUT],
+      allowedOrigins: ["*"],
+      allowedHeaders: ["*"],
+      maxAge: 3000
+    });
 
     // =====================================================================================
     // Construct to create our Amazon S3 Bucket to host our website
@@ -175,6 +196,97 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
 
     this.urlOutput = new CfnOutput(this, 'Url', {
       value: api.url,
+    });
+
+
+    // =====================================================================================
+    // Cognito User Pool Authentication
+    // =====================================================================================
+    const userPool = new cognito.UserPool(this, "UserPool", {
+      selfSignUpEnabled: true, // Allow users to sign up
+      autoVerify: { email: true }, // Verify email addresses by sending a verification code
+      signInAliases: { username: true, email: true }, // Set email as an alias
+    });
+
+    const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
+      userPool,
+      generateSecret: false, // Don't need to generate secret for web app running on browsers
+    });
+
+    const identityPool = new cognito.CfnIdentityPool(this, "ImageRekognitionIdentityPool", {
+      allowUnauthenticatedIdentities: false, // Don't allow unathenticated users
+      cognitoIdentityProviders: [
+        {
+        clientId: userPoolClient.userPoolClientId,
+        providerName: userPool.userPoolProviderName,
+        },
+      ],
+    });
+
+    const auth = new apigw.CfnAuthorizer(this, 'APIGatewayAuthorizer', {
+      name: 'customer-authorizer',
+      identitySource: 'method.request.header.Authorization',
+      providerArns: [userPool.userPoolArn],
+      restApiId: api.restApiId,
+      type: AuthorizationType.COGNITO,
+    });
+
+    const authenticatedRole = new iam.Role(this, "ImageRekognitionAuthenticatedRole", {
+      assumedBy: new iam.FederatedPrincipal(
+        "cognito-identity.amazonaws.com",
+          {
+          StringEquals: {
+              "cognito-identity.amazonaws.com:aud": identityPool.ref,
+          },
+          "ForAnyValue:StringLike": {
+            "cognito-identity.amazonaws.com:amr": "authenticated",
+          },
+        },
+        "sts:AssumeRoleWithWebIdentity"
+      ),
+    });
+
+    // IAM policy granting users permission to upload, download and delete their own pictures
+    authenticatedRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "s3:GetObject",
+          "s3:PutObject"
+        ],
+        effect: iam.Effect.ALLOW,
+        resources: [
+          imageBucketArn + "/private/${cognito-identity.amazonaws.com:sub}/*",
+          imageBucketArn + "/private/${cognito-identity.amazonaws.com:sub}"
+        ],
+      })
+    );
+
+    // IAM policy granting users permission to list their pictures
+    authenticatedRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:ListBucket"],
+        effect: iam.Effect.ALLOW,
+        resources: [
+          imageBucketArn
+        ],
+        conditions: {"StringLike": {"s3:prefix": ["private/${cognito-identity.amazonaws.com:sub}/*"]}}
+      })
+    );
+
+    new cognito.CfnIdentityPoolRoleAttachment(this, "IdentityPoolRoleAttachment", {
+      identityPoolId: identityPool.ref,
+      roles: { authenticated: authenticatedRole.roleArn },
+    });
+
+    // Export values of Cognito
+    new CfnOutput(this, "UserPoolId", {
+      value: userPool.userPoolId,
+    });
+    new CfnOutput(this, "AppClientId", {
+      value: userPoolClient.userPoolClientId,
+    });
+    new CfnOutput(this, "IdentityPoolId", {
+      value: identityPool.ref,
     });
   }
 }
