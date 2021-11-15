@@ -49,20 +49,20 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       publicReadAccess: true,
       autoDeleteObjects: true
     });
-    
+
     webBucket.addToResourcePolicy(new iam.PolicyStatement({
       actions: ['s3:GetObject'],
       resources: [webBucket.arnForObjects('*')],
-      principals: [new iam.AnyPrincipal()]    
+      principals: [new iam.AnyPrincipal()]
     }))
     new cdk.CfnOutput(this, 'bucketURL', { value: webBucket.bucketWebsiteDomainName });
-    
+
     // =====================================================================================
     // Deploy site contents to S3 Bucket
     // =====================================================================================
     new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-        sources: [ s3deploy.Source.asset('./static-website') ],
-        destinationBucket: webBucket
+      sources: [s3deploy.Source.asset('./static-website')],
+      destinationBucket: webBucket
     });
 
     const table = new dynamodb.Table(this, 'Messages', {
@@ -93,7 +93,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       environment: {
         "TABLE": table.tableName
       },
-      tracing: Tracing.ACTIVE
+      tracing: Tracing.ACTIVE,
     });
 
     createHandler.addToRolePolicy(new iam.PolicyStatement({
@@ -122,25 +122,27 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
     });
 
     const messages = api.root;
-    messages.addMethod('GET', new apigw.LambdaIntegration(readHandler, { proxy: false,  integrationResponses: [
-      {
-        statusCode: "200",
-        responseParameters: {
-          // We can map response parameters
-          // - Destination parameters (the key) are the response parameters (used in mappings)
-          // - Source parameters (the value) are the integration response parameters or expressions
-          'method.response.header.Access-Control-Allow-Origin': "'*'"
+    messages.addMethod('GET', new apigw.LambdaIntegration(readHandler, {
+      proxy: false, integrationResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            // We can map response parameters
+            // - Destination parameters (the key) are the response parameters (used in mappings)
+            // - Source parameters (the value) are the integration response parameters or expressions
+            'method.response.header.Access-Control-Allow-Origin': "'*'"
+          }
+        },
+        {
+          // For errors, we check if the error message is not empty, get the error data
+          selectionPattern: "(\n|.)+",
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': "'*'"
+          }
         }
-      },
-      {
-        // For errors, we check if the error message is not empty, get the error data
-        selectionPattern: "(\n|.)+",
-        statusCode: "500",
-        responseParameters: {
-          'method.response.header.Access-Control-Allow-Origin': "'*'"
-        }
-      }
-    ], }), {
+      ],
+    }), {
       methodResponses: [
         {
           statusCode: "200",
@@ -158,45 +160,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
     });
 
 
-    messages.addMethod('POST', new apigw.LambdaIntegration(createHandler, { proxy: false,  integrationResponses: [
-      {
-        statusCode: "200",
-        responseParameters: {
-          // We can map response parameters
-          // - Destination parameters (the key) are the response parameters (used in mappings)
-          // - Source parameters (the value) are the integration response parameters or expressions
-          'method.response.header.Access-Control-Allow-Origin': "'*'"
-        }
-      },
-      {
-        // For errors, we check if the error message is not empty, get the error data
-        selectionPattern: "(\n|.)+",
-        statusCode: "500",
-        responseParameters: {
-          'method.response.header.Access-Control-Allow-Origin': "'*'"
-        }
-      }
-    ], }), {
-      methodResponses: [
-        {
-          statusCode: "200",
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-          },
-        },
-        {
-          statusCode: "500",
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-          },
-        }
-      ]
-    });
 
-
-    this.urlOutput = new CfnOutput(this, 'Url', {
-      value: api.url,
-    });
 
 
     // =====================================================================================
@@ -206,6 +170,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       selfSignUpEnabled: true, // Allow users to sign up
       autoVerify: { email: true }, // Verify email addresses by sending a verification code
       signInAliases: { username: true, email: true }, // Set email as an alias
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
@@ -213,12 +178,12 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       generateSecret: false, // Don't need to generate secret for web app running on browsers
     });
 
-    const identityPool = new cognito.CfnIdentityPool(this, "ImageRekognitionIdentityPool", {
+    const identityPool = new cognito.CfnIdentityPool(this, "AppreicationDashboardIdentityPool", {
       allowUnauthenticatedIdentities: false, // Don't allow unathenticated users
       cognitoIdentityProviders: [
         {
-        clientId: userPoolClient.userPoolClientId,
-        providerName: userPool.userPoolProviderName,
+          clientId: userPoolClient.userPoolClientId,
+          providerName: userPool.userPoolProviderName,
         },
       ],
     });
@@ -231,12 +196,12 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
       type: AuthorizationType.COGNITO,
     });
 
-    const authenticatedRole = new iam.Role(this, "ImageRekognitionAuthenticatedRole", {
+    const authenticatedRole = new iam.Role(this, "AppreicationDashboardAuthenticatedRole", {
       assumedBy: new iam.FederatedPrincipal(
         "cognito-identity.amazonaws.com",
-          {
+        {
           StringEquals: {
-              "cognito-identity.amazonaws.com:aud": identityPool.ref,
+            "cognito-identity.amazonaws.com:aud": identityPool.ref,
           },
           "ForAnyValue:StringLike": {
             "cognito-identity.amazonaws.com:amr": "authenticated",
@@ -244,6 +209,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
         },
         "sts:AssumeRoleWithWebIdentity"
       ),
+
     });
 
     // IAM policy granting users permission to upload, download and delete their own pictures
@@ -269,7 +235,7 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
         resources: [
           imageBucketArn
         ],
-        conditions: {"StringLike": {"s3:prefix": ["private/${cognito-identity.amazonaws.com:sub}/*"]}}
+        conditions: { "StringLike": { "s3:prefix": ["private/${cognito-identity.amazonaws.com:sub}/*"] } }
       })
     );
 
@@ -287,6 +253,54 @@ export class CdkCloudFormationAppreciationDashboardStack extends cdk.Stack {
     });
     new CfnOutput(this, "IdentityPoolId", {
       value: identityPool.ref,
+    });
+
+
+    // =====================================================================================
+    // Connecting Cognito to UserPool
+    // =====================================================================================
+    messages.addMethod('POST', new apigw.LambdaIntegration(createHandler, {
+      proxy: false, integrationResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            // We can map response parameters
+            // - Destination parameters (the key) are the response parameters (used in mappings)
+            // - Source parameters (the value) are the integration response parameters or expressions
+            'method.response.header.Access-Control-Allow-Origin': "'*'"
+          }
+        },
+        {
+          // For errors, we check if the error message is not empty, get the error data
+          selectionPattern: "(\n|.)+",
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': "'*'"
+          }
+        }
+      ],
+    }), {
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        },
+        {
+          statusCode: "500",
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        }
+      ],
+      authorizationType: AuthorizationType.COGNITO,
+      authorizer: { authorizerId: auth.ref },
+    });
+
+
+    this.urlOutput = new CfnOutput(this, 'Url', {
+      value: api.url,
     });
   }
 }
