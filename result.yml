@@ -1,0 +1,1029 @@
+Resources:
+  cdkreknimgagebucketABE44D40:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedOrigins:
+              - "*"
+            MaxAge: 3000
+      Tags:
+        - Key: aws-cdk:auto-delete-objects
+          Value: "true"
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/cdk-rekn-imgagebucket/Resource
+  cdkreknimgagebucketPolicy972D16D8:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: cdkreknimgagebucketABE44D40
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - cdkreknimgagebucketABE44D40
+                      - Arn
+                  - /*
+          - Action:
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::GetAtt:
+                  - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+                  - Arn
+            Resource:
+              - Fn::GetAtt:
+                  - cdkreknimgagebucketABE44D40
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - cdkreknimgagebucketABE44D40
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: DashboardStack/cdk-rekn-imgagebucket/Policy/Resource
+  cdkreknimgagebucketAutoDeleteObjectsCustomResource58ACB552:
+    Type: Custom::S3AutoDeleteObjects
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F
+          - Arn
+      BucketName:
+        Ref: cdkreknimgagebucketABE44D40
+    DependsOn:
+      - cdkreknimgagebucketPolicy972D16D8
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/cdk-rekn-imgagebucket/AutoDeleteObjectsCustomResource/Default
+  CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+      ManagedPolicyArns:
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: DashboardStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role
+  CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 1f7e277bd526ebce1983fa1e7a84a5281ec533d9187caaebb773681bbf7bf4c1.zip
+      Timeout: 900
+      MemorySize: 128
+      Handler: __entrypoint__.handler
+      Role:
+        Fn::GetAtt:
+          - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+          - Arn
+      Runtime: nodejs12.x
+      Description:
+        Fn::Join:
+          - ""
+          - - "Lambda function for auto-deleting objects in "
+            - Ref: cdkreknimgagebucketABE44D40
+            - " S3 bucket."
+    DependsOn:
+      - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+    Metadata:
+      aws:cdk:path: DashboardStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler
+  cdkdashboardpublicbucket47E6E289:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: aws-cdk:auto-delete-objects
+          Value: "true"
+      WebsiteConfiguration:
+        ErrorDocument: index.html
+        IndexDocument: index.html
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/cdk-dashboard-publicbucket/Resource
+  cdkdashboardpublicbucketPolicyD8F5300A:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: cdkdashboardpublicbucket47E6E289
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - cdkdashboardpublicbucket47E6E289
+                      - Arn
+                  - /*
+          - Action:
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::GetAtt:
+                  - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+                  - Arn
+            Resource:
+              - Fn::GetAtt:
+                  - cdkdashboardpublicbucket47E6E289
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - cdkdashboardpublicbucket47E6E289
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: DashboardStack/cdk-dashboard-publicbucket/Policy/Resource
+  cdkdashboardpublicbucketAutoDeleteObjectsCustomResourceEFA36131:
+    Type: Custom::S3AutoDeleteObjects
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F
+          - Arn
+      BucketName:
+        Ref: cdkdashboardpublicbucket47E6E289
+    DependsOn:
+      - cdkdashboardpublicbucketPolicyD8F5300A
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/cdk-dashboard-publicbucket/AutoDeleteObjectsCustomResource/Default
+  DeployWebsiteAwsCliLayer17DBC421:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: e9882ab123687399f934da0d45effe675ecc8ce13b40cb946f3e1d6141fe8d68.zip
+      Description: /opt/awscli/aws
+    Metadata:
+      aws:cdk:path: DashboardStack/DeployWebsite/AwsCliLayer/Resource
+      aws:asset:path: asset.e9882ab123687399f934da0d45effe675ecc8ce13b40cb946f3e1d6141fe8d68.zip
+      aws:asset:property: Content
+  DeployWebsiteCustomResourceD116527B:
+    Type: Custom::CDKBucketDeployment
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536
+          - Arn
+      SourceBucketNames:
+        - Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+      SourceObjectKeys:
+        - c46fece7568cd44853ac24f6eea2f312216475caa47ec5c7b86b6f21a5b7783d.zip
+      DestinationBucketName:
+        Ref: cdkdashboardpublicbucket47E6E289
+      Prune: true
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/DeployWebsite/CustomResource/Default
+  CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: DashboardStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource
+  CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":s3:::"
+                    - Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":s3:::"
+                    - Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+                    - /*
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - cdkdashboardpublicbucket47E6E289
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - cdkdashboardpublicbucket47E6E289
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+      PolicyName: CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF
+      Roles:
+        - Ref: CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265
+    Metadata:
+      aws:cdk:path: DashboardStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource
+  CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: a3058ccb468d757ebb89df5363a1c20f5307c6911136f29d00e1a68c9b2aa7e8.zip
+      Role:
+        Fn::GetAtt:
+          - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265
+          - Arn
+      Handler: index.handler
+      Layers:
+        - Ref: DeployWebsiteAwsCliLayer17DBC421
+      Runtime: python3.7
+      Timeout: 900
+    DependsOn:
+      - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF
+      - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265
+    Metadata:
+      aws:cdk:path: DashboardStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource
+      aws:asset:path: asset.a3058ccb468d757ebb89df5363a1c20f5307c6911136f29d00e1a68c9b2aa7e8
+      aws:asset:property: Code
+  Messages804FA4EB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: messsage
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: messsage
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/Messages/Resource
+  ReadLambdaServiceRole786C9B4A:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: DashboardStack/ReadLambda/ServiceRole/Resource
+  ReadLambdaServiceRoleDefaultPolicy6518FF35:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action: dynamodb:*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - Messages804FA4EB
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: ReadLambdaServiceRoleDefaultPolicy6518FF35
+      Roles:
+        - Ref: ReadLambdaServiceRole786C9B4A
+    Metadata:
+      aws:cdk:path: DashboardStack/ReadLambda/ServiceRole/DefaultPolicy/Resource
+  ReadLambda25A29444:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: d7ed2fe69f56775d5eb5421efe29a1ea5cc458746796481b0197c34e57d6e7d5.zip
+      Role:
+        Fn::GetAtt:
+          - ReadLambdaServiceRole786C9B4A
+          - Arn
+      Environment:
+        Variables:
+          TABLE:
+            Ref: Messages804FA4EB
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - ReadLambdaServiceRoleDefaultPolicy6518FF35
+      - ReadLambdaServiceRole786C9B4A
+    Metadata:
+      aws:cdk:path: DashboardStack/ReadLambda/Resource
+      aws:asset:path: asset.d7ed2fe69f56775d5eb5421efe29a1ea5cc458746796481b0197c34e57d6e7d5
+      aws:asset:property: Code
+  CreateLambdaServiceRole6D566192:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: DashboardStack/CreateLambda/ServiceRole/Resource
+  CreateLambdaServiceRoleDefaultPolicy1D4CD1AB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - ses:SendEmail
+              - SES:SendRawEmail
+            Effect: Allow
+            Resource: "*"
+          - Action: dynamodb:*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - Messages804FA4EB
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: CreateLambdaServiceRoleDefaultPolicy1D4CD1AB
+      Roles:
+        - Ref: CreateLambdaServiceRole6D566192
+    Metadata:
+      aws:cdk:path: DashboardStack/CreateLambda/ServiceRole/DefaultPolicy/Resource
+  CreateLambdaC1742B49:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: f3e6e547344dd2ca68255b529c4df7182de90b421f31f9476a437dd990dd42a7.zip
+      Role:
+        Fn::GetAtt:
+          - CreateLambdaServiceRole6D566192
+          - Arn
+      Environment:
+        Variables:
+          TABLE:
+            Ref: Messages804FA4EB
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - CreateLambdaServiceRoleDefaultPolicy1D4CD1AB
+      - CreateLambdaServiceRole6D566192
+    Metadata:
+      aws:cdk:path: DashboardStack/CreateLambda/Resource
+      aws:asset:path: asset.f3e6e547344dd2ca68255b529c4df7182de90b421f31f9476a437dd990dd42a7
+      aws:asset:property: Code
+  Gateway43CB3636:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: example api gateway
+      Name: Gateway
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Resource
+  GatewayCloudWatchRole34305E06:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/CloudWatchRole/Resource
+  GatewayAccount6D7AA49C:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - GatewayCloudWatchRole34305E06
+          - Arn
+    DependsOn:
+      - Gateway43CB3636
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Account
+  GatewayDeployment880EB8C26a7ddf4ab8595bb72defc7145016ab94:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: Gateway43CB3636
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - GatewayGET0C37C89B
+      - GatewayOPTIONS9DF93096
+      - GatewayPOST8BFCB567
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Deployment/Resource
+  GatewayDeploymentStageprod62BC6904:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: Gateway43CB3636
+      DeploymentId:
+        Ref: GatewayDeployment880EB8C26a7ddf4ab8595bb72defc7145016ab94
+      StageName: prod
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/DeploymentStage.prod/Resource
+  GatewayOPTIONS9DF93096:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId:
+        Fn::GetAtt:
+          - Gateway43CB3636
+          - RootResourceId
+      RestApiId:
+        Ref: Gateway43CB3636
+      AuthorizationType: NONE
+      Integration:
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET,POST,PUT,PATCH,DELETE'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+            StatusCode: "204"
+        RequestTemplates:
+          application/json: "{ statusCode: 200 }"
+        Type: MOCK
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Credentials: true
+          StatusCode: "204"
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/OPTIONS/Resource
+  GatewayGETApiPermissionDashboardStackGateway2B90D5E7GET7D2CD52B:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - ReadLambda25A29444
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: Gateway43CB3636
+            - /
+            - Ref: GatewayDeploymentStageprod62BC6904
+            - /GET/
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/GET/ApiPermission.DashboardStackGateway2B90D5E7.GET..
+  GatewayGETApiPermissionTestDashboardStackGateway2B90D5E7GETFC23CCCB:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - ReadLambda25A29444
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: Gateway43CB3636
+            - /test-invoke-stage/GET/
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/GET/ApiPermission.Test.DashboardStackGateway2B90D5E7.GET..
+  GatewayGET0C37C89B:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId:
+        Fn::GetAtt:
+          - Gateway43CB3636
+          - RootResourceId
+      RestApiId:
+        Ref: Gateway43CB3636
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            StatusCode: "200"
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            SelectionPattern: |-
+              (
+              |.)+
+            StatusCode: "500"
+        Type: AWS
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - ReadLambda25A29444
+                  - Arn
+              - /invocations
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "200"
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "500"
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/GET/Resource
+  GatewayPOSTApiPermissionDashboardStackGateway2B90D5E7POST27CFD4C0:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - CreateLambdaC1742B49
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: Gateway43CB3636
+            - /
+            - Ref: GatewayDeploymentStageprod62BC6904
+            - /POST/
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/POST/ApiPermission.DashboardStackGateway2B90D5E7.POST..
+  GatewayPOSTApiPermissionTestDashboardStackGateway2B90D5E7POST7BEAAD46:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - CreateLambdaC1742B49
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: Gateway43CB3636
+            - /test-invoke-stage/POST/
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/POST/ApiPermission.Test.DashboardStackGateway2B90D5E7.POST..
+  GatewayPOST8BFCB567:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId:
+        Fn::GetAtt:
+          - Gateway43CB3636
+          - RootResourceId
+      RestApiId:
+        Ref: Gateway43CB3636
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: APIGatewayAuthorizer
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            StatusCode: "200"
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            SelectionPattern: |-
+              (
+              |.)+
+            StatusCode: "500"
+        Type: AWS
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - CreateLambdaC1742B49
+                  - Arn
+              - /invocations
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "200"
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "500"
+    Metadata:
+      aws:cdk:path: DashboardStack/Gateway/Default/POST/Resource
+  UserPool6BA7E5F2:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+          - Name: verified_email
+            Priority: 2
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AliasAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      EmailVerificationMessage: The verification code to your new account is {####}
+      EmailVerificationSubject: Verify your new account
+      SmsVerificationMessage: The verification code to your new account is {####}
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailMessage: The verification code to your new account is {####}
+        EmailSubject: Verify your new account
+        SmsMessage: The verification code to your new account is {####}
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DashboardStack/UserPool/Resource
+  UserPoolClient2F5918F7:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: UserPool6BA7E5F2
+      AllowedOAuthFlows:
+        - implicit
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - profile
+        - phone
+        - email
+        - openid
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - https://example.com
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+    Metadata:
+      aws:cdk:path: DashboardStack/UserPoolClient/Resource
+  AppreicationDashboardIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId:
+            Ref: UserPoolClient2F5918F7
+          ProviderName:
+            Fn::GetAtt:
+              - UserPool6BA7E5F2
+              - ProviderName
+    Metadata:
+      aws:cdk:path: DashboardStack/AppreicationDashboardIdentityPool
+  APIGatewayAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      RestApiId:
+        Ref: Gateway43CB3636
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      Name: customer-authorizer
+      ProviderARNs:
+        - Fn::GetAtt:
+            - UserPool6BA7E5F2
+            - Arn
+    Metadata:
+      aws:cdk:path: DashboardStack/APIGatewayAuthorizer
+  AppreicationDashboardAuthenticatedRoleD8547341:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud:
+                  Ref: AppreicationDashboardIdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+            Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: DashboardStack/AppreicationDashboardAuthenticatedRole/Resource
+  AppreicationDashboardAuthenticatedRoleDefaultPolicy8342D3A9:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject
+              - s3:PutObject
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - cdkreknimgagebucketABE44D40
+                        - Arn
+                    - /private/${cognito-identity.amazonaws.com:sub}/*
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - cdkreknimgagebucketABE44D40
+                        - Arn
+                    - /private/${cognito-identity.amazonaws.com:sub}
+          - Action: s3:ListBucket
+            Condition:
+              StringLike:
+                s3:prefix:
+                  - private/${cognito-identity.amazonaws.com:sub}/*
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - cdkreknimgagebucketABE44D40
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: AppreicationDashboardAuthenticatedRoleDefaultPolicy8342D3A9
+      Roles:
+        - Ref: AppreicationDashboardAuthenticatedRoleD8547341
+    Metadata:
+      aws:cdk:path: DashboardStack/AppreicationDashboardAuthenticatedRole/DefaultPolicy/Resource
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        Ref: AppreicationDashboardIdentityPool
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+            - AppreicationDashboardAuthenticatedRoleD8547341
+            - Arn
+    Metadata:
+      aws:cdk:path: DashboardStack/IdentityPoolRoleAttachment
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/2WS3W7bMAyFn6X3srqsG3o7N0OBAhsWpNvuFYlL2chiIFINPMHvPsmOExe70scfU4dHXunVx3v94eaLOXFj3eE2W4qg87MYe1BrCiwxWVHrxELdFphStKDWf8KV35U2kd7QQVQtM0gZs8ewr/0/khyTqOWIMt6hIIVB1esz3+n8kOwBpFbPNB0b8mj7a/ocT8GDYRgU3zXZwdFT30EQPZW+XhLKVEGsR12D8qbbOaNzmfjN9BB/Q+SiRD0XuR6EwmMKtmpTFyitS95A7JB5lI+m03lLfnKmnlfBEw3K9cF05HY6/zS7qXOEsvwR90bgZPoyBFjaI54dnrG1llLZYbFOyS6iavQ4coLZ5eqM+g7yQq4Wr9SmQhH/QhyUpX1AIZ1/McQNka8NF55h7fF87f+ZJ1cApZ8/XsbVjVbK7/RShQ6z842vrjfl3a1H3Z64TBsfYlCBHOhXvn1bfdKre/355pURm1j2xw70djr/AdL7uEC5AgAA
+    Metadata:
+      aws:cdk:path: DashboardStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  imageBucket:
+    Value:
+      Ref: cdkreknimgagebucketABE44D40
+  bucketURL:
+    Value:
+      Fn::Select:
+        - 2
+        - Fn::Split:
+            - /
+            - Fn::GetAtt:
+                - cdkdashboardpublicbucket47E6E289
+                - WebsiteURL
+  ddbTable:
+    Value:
+      Ref: Messages804FA4EB
+  GatewayEndpoint4DF49EE0:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: Gateway43CB3636
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: GatewayDeploymentStageprod62BC6904
+          - /
+  UserPoolId:
+    Value:
+      Ref: UserPool6BA7E5F2
+  AppClientId:
+    Value:
+      Ref: UserPoolClient2F5918F7
+  IdentityPoolId:
+    Value:
+      Ref: AppreicationDashboardIdentityPool
+  Url:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: Gateway43CB3636
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: GatewayDeploymentStageprod62BC6904
+          - /
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store.
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

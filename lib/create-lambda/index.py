@@ -41,17 +41,29 @@ def lambda_handler(event, context):
     messages_table = os.environ['TABLE']
     table = dynamodb.Table(messages_table)
     print(event)
-    table.put_item(
-       Item={
-            'messsage': message,
-            'message': message,
-            'to': toEmailAddresses,
-            'from': fromEmailAddresses,
-            'nickname': nickname,
-            'senderName': senderName,
-            'imageUrl': imageUrl
-        }
-    )
+    if imageUrl == "":
+        table.put_item(
+        Item={
+                'messsage': message,
+                'message': message,
+                'to': toEmailAddresses,
+                'from': fromEmailAddresses,
+                'nickname': nickname,
+                'senderName': senderName,
+                'imageUrl': imageUrl
+            }
+        )
+    else:
+        table.put_item(
+        Item={
+                'messsage': message,
+                'message': message,
+                'to': toEmailAddresses,
+                'from': fromEmailAddresses,
+                'nickname': nickname,
+                'senderName': senderName
+            }
+        )
 
     try:
     #Provide the contents of the email.

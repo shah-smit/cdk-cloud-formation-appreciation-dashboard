@@ -1,6 +1,6 @@
 import * as apigw from '@aws-cdk/aws-apigateway';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { CfnOutput, Construct, Stack, StackProps } from '@aws-cdk/core';
+import { CfnOutput } from '@aws-cdk/core';
 import dynamodb = require('@aws-cdk/aws-dynamodb');
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
@@ -10,7 +10,7 @@ import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import { Tracing } from '@aws-cdk/aws-lambda';
 import cognito = require('@aws-cdk/aws-cognito');
 import { HttpMethods } from '@aws-cdk/aws-s3';
-import { AuthorizationType, PassthroughBehavior } from '@aws-cdk/aws-apigateway';
+import { AuthorizationType } from '@aws-cdk/aws-apigateway';
 
 const websiteBucketName = "cdk-dashboard-publicbucket"
 const imageBucketName = "cdk-rekn-imgagebucket"
